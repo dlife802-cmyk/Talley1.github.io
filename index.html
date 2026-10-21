@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GST Tally Suite - Enterprise Ultimate Pro v13.11</title>
+    <style>
+        :root {
+            --tally-green: #1b4d3e;
+            --tally-dark: #123328;
+            --tally-accent: #27ae60;
+            --bg-light: #f0f4f3;
+            --border-color: #cbd5e0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background: var(--tally-green);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--tally-accent);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
+        .company-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.03);
+            flex-shrink: 0;
+        }
+        .nav-item {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #4a5568;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-item:hover {
+            background: #f7fafc;
+            color: var(--tally-green);
+        }
+        .nav-item.active {
+            background: #edf2f7;
+            color: var(--tally-green);
+            border-left-color: var(--tally-accent);
+        }
+        .nav-item span.count-badge {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #2d3748;
+        }
+        content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+        }
+        h2.section-title {
+            margin-top: 0;
+            color: var(--tally-green);
+            font-size: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        label { display: block; font-size: 13px; font-weight: 600; margin-top: 12px; color: #4a5568; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            border-color: var(--tally-accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
+        }
+        .row { display: flex; gap: 15px; }
+        .row > div { flex: 1; }
+        .btn {
+            background: var(--tally-accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #219653; }
+        .btn-danger { background: #e53e3e; }
+        .btn-danger:hover { background: #c53030; }
+        .btn-secondary { background: #4a5568; }
+        .btn-secondary:hover { background: #2d3748; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+        th {
+            background: #edf2f7;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        tr:hover { background: #f7fafc; }
+
+        .voucher-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .voucher-items-table th, .voucher-items-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+        }
+        .voucher-items-table th { background: #edf2f7; font-size: 13px; }
+
+        @page {
+            size: A4 portrait;
+            margin: 0mm;
+        }
+        .tally-invoice-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 10mm;
+            box-sizing: border-box;
+        }
+        .tally-invoice-container {
+            background: white;
+            border: 2px solid #000 !important;
+            width: 100%;
+            min-height: 275mm;
+            box-sizing: border-box;
+            color: #000;
+            font-family: 'Arial', sans-serif;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .tally-table {
+            width: 100%;
+            border-collapse: collapse !important;
+            border: none !important;
+            margin-bottom: 0px;
+        }
+        .tally-table td, .tally-table th {
+            border: 1px solid #000 !important;
+            padding: 3px 6px;
+            vertical-align: top;
+            font-size: 11px;
+        }
+        .print-btn { background: #1a202c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
+        .print-btn:hover { background: #2d3748; }
+
+        @media print {
+            body, html {
+                width: 210mm;
+                height: 297mm;
+                background: white !important;
+            }
+            sidebar, header, .card, .btn, .print-btn { display: none !important; }
+            content-area { padding: 0 !important; background: white !important; overflow: visible !important; }
+            .tally-invoice-wrapper {
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 210mm !important;
+                min-height: 297mm !important;
+                padding: 5mm !important;
+            }
+            .tally-invoice-container {
+                border: 2px solid #000 !important;
+                width: 100% !important;
+                min-height: 287mm !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🏛️ GST Tally Suite Pro 2.0 (By DIPAK SINGHA)</h1>
+        <div id="activeCompanyHeader" class="company-badge">Active Company: None Selected</div>
+    </header>
+
+    <div class="main-wrapper">
+        <sidebar>
+            <div class="nav-item active" data-tab="dashboard">🏠 Gateway of Tally</div>
+            <div class="nav-item" data-tab="company">🏢 Companies <span id="compBadge" class="count-badge">0</span></div>
+            <div class="nav-item" data-tab="party">👥 Parties (Ledgers) <span id="partyBadge" class="count-badge">0</span></div>
+            <div class="nav-item" data-tab="item">📦 Stock Items <span id="itemBadge" class="count-badge">0</span></div>
+            <div class="nav-item" data-tab="voucher">📝 Sales Invoice Voucher</div>
+            <div class="nav-item" data-tab="reports">📊 Day Book / Reports <span id="reportBadge" class="count-badge">0</span></div>
+        </sidebar>
+
+        <content-area>
+            
+            <!-- 1. DASHBOARD -->
+            <div id="dashboard" class="view active">
+                <div class="card">
+                    <h2 class="section-title">Welcome to Gateway of Tally</h2>
+                    <p style="color: #4a5568; line-height: 1.6;">
+                        Manage your corporate taxation workflow with full-page A4 tax invoice formatting matched precisely to your Tally PDF standard.
+                    </p>
+                    <div style="display: flex; gap: 15px; margin-top: 25px;" id="dashboardNavButtons">
+                        <button class="btn" data-nav="company">1. Manage Company</button>
+                        <button class="btn" data-nav="party">2. Manage Parties</button>
+                        <button class="btn" data-nav="item">3. Manage Stock Items</button>
+                        <button class="btn" data-nav="voucher" style="background: #2b6cb0;">4. Generate Invoice</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. COMPANY VIEW -->
+            <div id="company" class="view">
+                <div class="card">
+                    <h2 class="section-title" id="compFormTitle">Company Creation & Alteration</h2>
+                    <input type="hidden" id="cEditId" value="">
+                    <label>Company Name:</label>
+                    <input type="text" id="cName" placeholder="e.g. A.P. TRADERS">
+                    
+                    <div class="row">
+                        <div>
+                            <label>State Code (e.g. 19 for West Bengal):</label>
+                            <input type="text" id="cState" maxlength="2" placeholder="19">
+                        </div>
+                        <div>
+                            <label>GSTIN:</label>
+                            <input type="text" id="cGstin" placeholder="19AGEPB6393D1ZH">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div>
+                            <label>Email:</label>
+                            <input type="text" id="cEmail" placeholder="tradersajoyprasad@gmail.com">
+                        </div>
+                        <div>
+                            <label>State Name:</label>
+                            <input type="text" id="cStateName" placeholder="West Bengal">
+                        </div>
+                    </div>
+                    <label>Registered Address:</label>
+                    <textarea id="cAddress" rows="2" placeholder="High Road, Near Santoshi Mandir, Nalhati, Birbhum-731220"></textarea>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" id="saveCompBtn">Save Company Master</button>
+                        <button class="btn btn-secondary" id="cancelCompEditBtn" style="display:none;">Cancel Alteration</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-top:0; color:#2d3748;">Registered Companies (Alter / Delete)</h3>
+                    <div id="companyTableContainer"></div>
+                </div>
+            </div>
+
+            <!-- 3. PARTY VIEW -->
+            <div id="party" class="view">
+                <div class="card">
+                    <h2 class="section-title" id="partyFormTitle">Party Ledger Creation & Alteration</h2>
+                    <input type="hidden" id="pEditId" value="">
+                    <label>Party Name:</label>
+                    <input type="text" id="pName" placeholder="e.g. GOPAL MISHRA">
+
+                    <div class="row">
+                        <div>
+                            <label>Ledger Group:</label>
+                            <select id="pGroup">
+                                <option value="Sundry Debtor">Sundry Debtor (Customer)</option>
+                                <option value="Sundry Creditor">Sundry Creditor (Supplier)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>State Code (e.g. 10 for Bihar):</label>
+                            <input type="text" id="pState" maxlength="2" placeholder="10">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div>
+                            <label>Party GSTIN:</label>
+                            <input type="text" id="pGstin" placeholder="10ALIPM6148A1ZM">
+                        </div>
+                        <div>
+                            <label>State Name:</label>
+                            <input type="text" id="pStateName" placeholder="Bihar">
+                        </div>
+                    </div>
+                    <label>Party Billing / Shipping Address:</label>
+                    <textarea id="pAddress" rows="2" placeholder="Raj Hata, Binodpur, Katihar, Bihar- 854105"></textarea>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" id="savePartyBtn">Save Party Ledger</button>
+                        <button class="btn btn-secondary" id="cancelPartyEditBtn" style="display:none;">Cancel Alteration</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-top:0; color:#2d3748;">Party Ledgers (Alter / Delete)</h3>
+                    <div id="partyTableContainer"></div>
+                </div>
+            </div>
+
+            <!-- 4. STOCK ITEM VIEW -->
+            <div id="item" class="view">
+                <div class="card">
+                    <h2 class="section-title" id="itemFormTitle">Stock Item Creation & Alteration</h2>
+                    <input type="hidden" id="iEditId" value="">
+                    <label>Item Name:</label>
+                    <input type="text" id="iName" placeholder="e.g. Nuts & Bolts- (1'X6')">
+
+                    <div class="row">
+                        <div>
+                            <label>HSN / SAC Code:</label>
+                            <input type="text" id="iHsn" placeholder="7318">
+                        </div>
+                        <div>
+                            <label>Units of Measurement:</label>
+                            <select id="iUnit">
+                                <option value="Kg" selected>Kg (Kilograms)</option>
+                                <option value="MT">MT (Metric Tonnes)</option>
+                                <option value="Nos">Nos (Numbers)</option>
+                                <option value="Pcs">Pcs (Pieces)</option>
+                                <option value="Box">Box</option>
+                                <option value="Bundle">Bundle</option>
+                                <option value="Meters">Meters</option>
+                                <option value="Litres">Litres</option>
+                                <option value="Pack">Pack</option>
+                                <option value="Set">Set</option>
+                                <option value="Pair">Pair</option>
+                                <option value="Bag">Bag</option>
+                                <option value="Hours">Hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label>Default GST Rate (%):</label>
+                    <select id="iGst">
+                        <option value="5">5% (CGST 2.5% + SGST 2.5%)</option>
+                        <option value="12">12% (CGST 6% + SGST 6%)</option>
+                        <option value="18" selected>18% (CGST 9% + SGST 9%)</option>
+                        <option value="28">28% (CGST 14% + SGST 14%)</option>
+                    </select>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" id="saveItemBtn">Save Stock Item</button>
+                        <button class="btn btn-secondary" id="cancelItemEditBtn" style="display:none;">Cancel Alteration</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-top:0; color:#2d3748;">Inventory Stock Items (Alter / Delete)</h3>
+                    <div id="itemTableContainer"></div>
+                </div>
+            </div>
+
+            <!-- 5. VOUCHER VIEW -->
+            <div id="voucher" class="view">
+                <div class="card">
+                    <h2 class="section-title">Sales Invoice Voucher (Multi-Item Entry & Alteration)</h2>
+                    
+                    <div class="row">
+                        <div>
+                            <label>Invoice Number:</label>
+                            <input type="text" id="vInvoiceNo" value="AP-286/26-27">
+                        </div>
+                        <div>
+                            <label>Invoice Date:</label>
+                            <input type="date" id="vInvoiceDate">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div>
+                            <label>Select Company (My Org):</label>
+                            <select id="vCompSelect"></select>
+                        </div>
+                        <div>
+                            <label>Select Party (Customer):</label>
+                            <select id="vPartySelect"></select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div>
+                            <label>Destination:</label>
+                            <input type="text" id="vDestination" value="Rampurhat">
+                        </div>
+                        <div>
+                            <label>Dispatch Through / Delivery Note:</label>
+                            <input type="text" id="vDispatch" value="">
+                        </div>
+                    </div>
+
+                    <h3 style="margin:20px 0 10px 0; font-size:16px; color:#2d3748;">Stock Items Entry</h3>
+                    <table class="voucher-items-table">
+                        <thead>
+                            <tr>
+                                <th>Stock Item</th>
+                                <th style="width:100px;">Quantity</th>
+                                <th style="width:140px;">Rate (₹)</th>
+                                <th style="width:140px;">Amount (₹)</th>
+                                <th style="width:60px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="voucherItemRows">
+                        </tbody>
+                    </table>
+                    <button class="btn btn-secondary" type="button" id="addRowBtn" style="margin-top:10px; padding:8px 15px; font-size:13px;">+ Add Another Stock Item</button>
+
+                    <br>
+                    <button class="btn" id="generateInvoiceBtn" style="background: #2b6cb0; margin-top:20px;">Generate & Print Full A4 Tax Invoice</button>
+                </div>
+
+                <div id="voucherResultContainer"></div>
+            </div>
+
+            <!-- 6. REPORTS / DAY BOOK -->
+            <div id="reports" class="view">
+                <div class="card">
+                    <h2 class="section-title">Day Book / Saved Tax Invoices</h2>
+                    <div id="reportsContainer"></div>
+                </div>
+            </div>
+
+        </content-area>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
