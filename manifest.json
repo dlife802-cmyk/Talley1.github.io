@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "GST Tally Suite (Enterprise Ultimate Pro v12)",
+  "version": "13.11",
+  "description": "Exact Tally-style GST Tax Invoice with HSN tax calculation, solid grid borders, Day Book deletion, and fixed Dispatch/Delivery fields.",
+  "permissions": [
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {}
+}
