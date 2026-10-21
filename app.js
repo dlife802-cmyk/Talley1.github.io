@@ -1,11 +1,11 @@
-// LocalStorage Wrapper to mimic chrome.storage.local for Web
+// LocalStorage Wrapper for Web compatibility
 const storage = {
     get: (keys, callback) => {
         let result = {};
         if (Array.isArray(keys)) {
             keys.forEach(key => {
                 let val = localStorage.getItem(key);
-                result[key] = val ? JSON.parse(val) : (key === 'companies' || key === 'parties' || key === 'items' || key === 'invoices' ? [] : undefined);
+                result[key] = val ? JSON.parse(val) : (['companies', 'parties', 'items', 'invoices'].includes(key) ? [] : undefined);
             });
         } else if (typeof keys === 'object') {
             Object.keys(keys).forEach(key => {
@@ -94,7 +94,7 @@ function addVoucherRow(selectedItemId = '', qtyVal = 134, rateVal = 140) {
     });
 }
 
-// 3. Number to Words Helper (Indian Format with Rupees & Paise)
+// 3. Number to Words Helper
 function numberToWords(num) {
     if (isNaN(num) || num === 0) return 'Zero Rupees Only';
     
