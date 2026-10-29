@@ -555,7 +555,7 @@
 
     <div id="main">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="font-weight:600; font-size:1.1rem; color:#f8fafc;" id="activeChainageTitle">Cross Section Visualizer</h2>
+            <h2 style="font-weight:600; font-size:1.1rem; color:#f8fafc;" id="activeChainageTitle">Cross Section Visualizer (Scale 1:100)</h2>
             <div id="datumLabel" class="datum-info">Datum: -- | Max RL: --</div>
         </div>
         
@@ -983,7 +983,7 @@ function runAnalysis() {
     const ch = document.getElementById('chSelect').value;
     if(!ch || !data1[ch] || !data2[ch]) return;
 
-    document.getElementById('activeChainageTitle').innerText = `Cross Section - Chainage: ${parseFloat(ch).toFixed(2)}`;
+    document.getElementById('activeChainageTitle').innerText = `Cross Section - Chainage: ${parseFloat(ch).toFixed(2)} (Scale 1:100)`;
 
     const strip = parseFloat(document.getElementById('stripDepth').value) || 0;
     
@@ -1066,6 +1066,8 @@ function drawChart(p1, p2, n1, n2, ch, datum, topLimit) {
             animation: false, 
             responsive: true, 
             maintainAspectRatio: false,
+            // Enforce equal 1:1 data scaling ratio (1 unit X = 1 unit Y) for 1:100 representation
+            aspectRatio: 1,
             plugins: { 
                 legend: { labels: { color: '#f8fafc', font: { family: 'Poppins', size: 12 } } },
                 dragData: { 
@@ -1079,8 +1081,20 @@ function drawChart(p1, p2, n1, n2, ch, datum, topLimit) {
                 }
             },
             scales: { 
-                x: { type:'linear', title: { display: true, text: 'Distance / Offset (m)', color: '#94a3b8' }, grid:{ color:'rgba(255,255,255,0.06)' }, ticks:{ color:'#94a3b8' } }, 
-                y: { type:'linear', min: datum, max: topLimit, title: { display: true, text: 'Elevation (m)', color: '#94a3b8' }, grid:{ color:'rgba(255,255,255,0.06)' }, ticks:{ color:'#94a3b8' } } 
+                x: { 
+                    type:'linear', 
+                    title: { display: true, text: 'Distance / Offset (m) [Scale 1:100]', color: '#94a3b8' }, 
+                    grid:{ color:'rgba(255,255,255,0.06)' }, 
+                    ticks:{ color:'#94a3b8' } 
+                }, 
+                y: { 
+                    type:'linear', 
+                    min: datum, 
+                    max: topLimit, 
+                    title: { display: true, text: 'Elevation (m) [Scale 1:100]', color: '#94a3b8' }, 
+                    grid:{ color:'rgba(255,255,255,0.06)' }, 
+                    ticks:{ color:'#94a3b8' } 
+                } 
             }
         }
     });
@@ -1287,7 +1301,7 @@ async function exportCSAndAreaPDF() {
         
         if (i > 0) doc.addPage();
         doc.setFontSize(14);
-        doc.text(`CROSS SECTION REPORT - CHAINAGE: ${parseFloat(common[i]).toFixed(2)} m`, 148, 12, { align: 'center' });
+        doc.text(`CROSS SECTION REPORT (Scale 1:100) - CHAINAGE: ${parseFloat(common[i]).toFixed(2)} m`, 148, 12, { align: 'center' });
         doc.addImage(document.getElementById('csChart').toDataURL('image/png'), 'PNG', 10, 18, 277, 75);
         doc.autoTable({ html: '#areaTable', startY: 98, theme: 'grid', styles: { fontSize: 7 } });
     }
