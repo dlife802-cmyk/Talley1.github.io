@@ -422,13 +422,16 @@
             <h2 style="margin:0;">Admin User Management</h2>
             <button class="btn btn-sm btn-outline" onclick="closeAdminPanel()">Close</button>
         </div>
-        <p>Manage user approvals and update passwords.</p>
+        <p>Manage user approvals and update passwords linked to Admin Sheet database.</p>
 
         <div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.2); border-radius: 8px; text-align: left;">
-            <label style="color: var(--primary); margin-bottom: 6px;">Google Sheet Web App API URL</label>
+            <label style="color: var(--primary); margin-bottom: 6px;">Google Sheet Database (PASSWORD)</label>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
+                Linked Sheet: <a href="https://docs.google.com/spreadsheets/d/1f-w6u5sYwaBNBQkmzc1OBByHAtklJ2m-Srn2QCu5QkY/edit" target="_blank" style="color: var(--primary);">PASSWORD Spreadsheet</a>
+            </div>
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="sheetApiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 0;">
-                <button class="btn btn-sm btn-blue" onclick="saveSheetApiUrl()" style="width: auto;">Link Sheet</button>
+                <button class="btn btn-sm btn-blue" onclick="saveSheetApiUrl()" style="width: auto;">Save API Link</button>
             </div>
         </div>
 
@@ -638,10 +641,12 @@
 </div>
 
 <script>
-// Default Local Fallback Users
+// Default Accounts matching the PASSWORD Google Sheet
 const DEFAULT_USERS = [
-    { name: "System Admin", username: "admin", password: "123", role: "admin", status: "approved" },
-    { name: "Demo User", username: "user", password: "123", role: "user", status: "approved" }
+    { name: "UNIQUE Admin", username: "UNIQUE", password: "DIPAKs@123", role: "admin", status: "approved" },
+    { name: "SUBHENDU User", username: "SUBHENDU", password: "543210", role: "user", status: "approved" },
+    { name: "Trial User", username: "Trial", password: "Trial", role: "user", status: "approved" },
+    { name: "AFTAR User", username: "AFTAR", password: "12345", role: "user", status: "approved" }
 ];
 
 function getSheetApiUrl() {
@@ -667,7 +672,7 @@ function saveUsers(users) {
     localStorage.setItem('earthwork_users', JSON.stringify(users));
 }
 
-// Auth Handlers (Hybrid: Online Google Sheet + Offline Local Fallback)
+// Auth Handlers (Hybrid: Google Sheet Verified + Fallback)
 async function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('loginUsername').value.trim();
@@ -686,7 +691,7 @@ async function handleLogin(e) {
 
             if (result.success) {
                 sessionStorage.setItem('isEarthworkLoggedIn', 'true');
-                sessionStorage.setItem('loggedInUserRole', result.role || "user");
+                sessionStorage.setItem('loggedInUserRole', result.role || (user.toUpperCase() === "UNIQUE" ? "admin" : "user"));
                 sessionStorage.setItem('loggedInUsername', user);
 
                 document.getElementById('loginModal').classList.add('hidden');
@@ -694,7 +699,7 @@ async function handleLogin(e) {
                 
                 checkAdminRoleUI();
                 loadSampleData();
-                showToast(`Welcome back, ${result.name || user}! (Verified via Google Sheet)`);
+                showToast(`Welcome back, ${result.name || user}! (Verified via PASSWORD Sheet)`);
                 return;
             } else {
                 errLabel.innerText = result.message || "Invalid credentials or pending approval.";
@@ -702,13 +707,13 @@ async function handleLogin(e) {
                 return;
             }
         } catch (err) {
-            console.warn("Sheet API connection failed, falling back to local database...", err);
+            console.warn("Sheet API connection failed, falling back to local credentials...", err);
         }
     }
 
-    // Fallback Local Storage Check
+    // Direct Credential Check from PASSWORD Sheet Database
     const users = getUsers();
-    const matched = users.find(u => u.username === user && u.password === pass);
+    const matched = users.find(u => u.username.toLowerCase() === user.toLowerCase() && u.password === pass);
 
     if (!matched) {
         errLabel.innerText = "Invalid username or password.";
@@ -753,7 +758,7 @@ async function handleSignupRequest(e) {
 
             if (result.success) {
                 msg.className = "auth-msg success";
-                msg.innerText = result.message || "Signup request saved to Google Sheet! Awaiting Admin approval.";
+                msg.innerText = result.message || "Signup request saved to PASSWORD Sheet! Awaiting Admin approval.";
                 msg.style.display = 'block';
                 setTimeout(() => { showLoginModal(); msg.style.display = 'none'; }, 2500);
                 return;
@@ -768,7 +773,7 @@ async function handleSignupRequest(e) {
         }
     }
 
-    // Fallback Local Storage Signup
+    // Local Storage Signup Fallback
     let users = getUsers();
     if (users.some(u => u.username.toLowerCase() === user.toLowerCase())) {
         msg.className = "auth-msg error";
@@ -834,7 +839,7 @@ function renderAdminUserList() {
     tbody.innerHTML = "";
 
     users.forEach(u => {
-        if (u.role === 'admin') return; // Hide admin from moderation list
+        if (u.role === 'admin') return; // Hide main admin from list
 
         const isApproved = u.status === 'approved';
         const badgeHtml = isApproved 
@@ -872,7 +877,7 @@ function changeUserPassword(username) {
     }
 
     let users = getUsers();
-    const user = users.find(u => u.username === username);
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (user) {
         user.password = newPass;
         saveUsers(users);
@@ -883,7 +888,7 @@ function changeUserPassword(username) {
 
 function toggleUserStatus(username, newStatus) {
     let users = getUsers();
-    const user = users.find(u => u.username === username);
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (user) {
         user.status = newStatus;
         saveUsers(users);
