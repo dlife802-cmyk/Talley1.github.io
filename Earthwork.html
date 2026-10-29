@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Consultancy | Advanced Professional Earthwork System</title>
+        
+    <!-- Required External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.3/dist/chartjs-plugin-dragdata.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root { 
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --sidebar-color: #1e293b;
+            --save: #10b981; 
+            --purple: #8b5cf6; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            z-index: 20000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal Content Card */
+        .auth-card {
+            background: #1e293b;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .auth-card h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .auth-card p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .auth-form .input-group {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .auth-form label {
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .auth-msg {
+            font-size: 11px;
+            margin-top: 5px;
+            margin-bottom: 12px;
+            display: none;
+            text-align: left;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .auth-msg.error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .auth-msg.success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .auth-toggle-link {
+            color: var(--primary);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        /* Admin Table styling inside modal */
+        .admin-table {
+            width: 100%;
+            margin-top: 15px;
+            font-size: 11px;
+        }
+        .admin-table th, .admin-table td {
+            padding: 8px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .badge-pending { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-approved { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .pass-edit-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+        .pass-input-sm {
+            width: 90px !important;
+            padding: 4px 6px !important;
+            margin: 0 !important;
+            font-size: 11px !important;
+        }
+
+        /* Navigation Header */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 3%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .logo-container { display: flex; align-items: center; gap: 10px; }
+        .logo { font-weight: 700; font-size: 1.3rem; color: var(--primary); letter-spacing: 0.5px; }
+        .logo-tag { font-size: 0.75rem; background: rgba(0, 210, 255, 0.15); color: var(--primary); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); }
+
+        .project-actions { display: flex; gap: 10px; align-items: center; }
+
+        /* Workspace Layout */
+        .workspace { display: flex; flex: 1; overflow: hidden; }
+
+        #sidebar { 
+            width: 330px; 
+            background: var(--sidebar-color); 
+            padding: 20px; 
+            overflow-y: auto; 
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        #main { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+
+        .config-box { 
+            background: rgba(255,255,255,0.03); 
+            padding: 14px; 
+            border-radius: 10px; 
+            border-left: 4px solid var(--primary); 
+            border-top: 1px solid var(--glass-border);
+            border-right: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="number"], input[type="password"], select { 
+            width: 100%; 
+            padding: 8px 10px; 
+            margin-bottom: 10px; 
+            border-radius: 6px; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            background: rgba(0,0,0,0.25); 
+            color: white; 
+            font-size: 12px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+        }
+        
+        input[type="file"] { display: none; }
+        .file-upload-btn {
+            display: block;
+            text-align: center;
+            padding: 7px 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            color: #cbd5e1;
+            transition: 0.2s;
+        }
+        .file-upload-btn:hover { background: rgba(255, 255, 255, 0.15); border-color: var(--primary); color: #fff; }
+        .file-status { font-size: 10px; color: var(--save); margin-top: 3px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .btn { 
+            width: 100%; 
+            padding: 10px 14px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 12px;
+            color: white; 
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-sm { width: auto; padding: 6px 10px; font-size: 11px; }
+        .btn-blue { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text); }
+        .btn-outline:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .btn:active { transform: translateY(0); }
+
+        /* Summary Stat Cards */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 10px; }
+        .stat-card { 
+            background: rgba(255,255,255,0.03); 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid var(--glass-border); 
+            text-align: center; 
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before { content: ''; position: absolute; top:0; left:0; width:100%; height:3px; background: var(--primary); }
+        .stat-card.cut::before { background: var(--danger); }
+        .stat-card.fill::before { background: var(--save); }
+        .stat-card.net::before { background: var(--primary); }
+        .stat-card h4 { font-size: 11px; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .stat-card .value { font-size: 1.3rem; font-weight: 700; }
+
+        /* Chart & Visual Containers */
+        #chart-wrapper, #masshaul-wrapper { 
+            height: 380px; 
+            width: 100%; 
+            background: rgba(15, 23, 42, 0.6); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 12px; 
+            padding: 15px; 
+            position: relative; 
+        }
+        .card { 
+            background: rgba(255, 255, 255, 0.02); 
+            padding: 18px; 
+            border-radius: 12px; 
+            border: 1px solid var(--glass-border); 
+        }
+        
+        /* Data Tables */
+        .table-responsive { overflow-x: auto; max-width: 100%; margin-top: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; color: #cbd5e1; }
+        th, td { border: 1px solid rgba(255,255,255,0.08); padding: 7px 8px; text-align: center; white-space: nowrap; }
+        th { background: rgba(255,255,255,0.06); color: var(--primary); font-weight: 600; text-transform: uppercase; font-size: 10px; }
+        tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+        tr:hover { background: rgba(255,255,255,0.04); }
+        .total-row { background: rgba(0, 210, 255, 0.08) !important; font-weight: bold; color: #fff; }
+        .datum-info { 
+            font-size: 12px; 
+            color: var(--primary); 
+            font-weight: 600; 
+            text-align: right; 
+            padding: 4px 8px; 
+            background: rgba(0, 210, 255, 0.1); 
+            border-radius: 6px; 
+            display: inline-block;
+        }
+
+        /* Overlay Loader */
+        #loader { 
+            display: none; 
+            position: fixed; 
+            top:0; left:0; width:100%; height:100%; 
+            background: rgba(15, 23, 42, 0.9); 
+            backdrop-filter: blur(8px);
+            z-index: 9999; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .spinner { 
+            border: 4px solid rgba(255,255,255,0.1); 
+            border-top: 4px solid var(--primary); 
+            border-radius: 50%; 
+            width: 45px; 
+            height: 45px; 
+            animation: spin 0.8s linear infinite; 
+            margin-bottom: 15px; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+
+        /* Notification Toast */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 10000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay">
+    <div class="auth-card">
+        <h2>Earthwork Portal</h2>
+        <p>Please log in to access the calculation system.</p>
+
+        <form class="auth-form" onsubmit="handleLogin(event)">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter username" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password" required>
+            </div>
+
+            <div class="auth-msg error" id="loginError">Invalid credentials or account pending approval.</div>
+
+            <button type="submit" class="btn btn-blue" style="margin-top: 8px;">Log In</button>
+        </form>
+
+        <div>
+            <span class="auth-toggle-link" onclick="showSignupModal()">Don't have an account? Request Signup</span>
+        </div>
+    </div>
+</div>
+
+<!-- Signup Request Modal -->
+<div id="signupModal" class="modal-overlay hidden">
+    <div class="auth-card">
+        <h2>Request Access Account</h2>
+        <p>Submit your details for Admin approval.</p>
+
+        <form class="auth-form" onsubmit="handleSignupRequest(event)">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="signupName" placeholder="John Doe" required>
+            </div>
+
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="signupUsername" placeholder="Choose a username" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="signupPassword" placeholder="Choose a password" required>
+            </div>
+
+            <div class="auth-msg" id="signupMsg"></div>
+
+            <button type="submit" class="btn btn-green" style="margin-top: 8px;">Submit Request</button>
+        </form>
+
+        <div>
+            <span class="auth-toggle-link" onclick="showLoginModal()">Back to Login</span>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Approval & Password Change Panel Modal -->
+<div id="adminPanelModal" class="modal-overlay hidden">
+    <div class="auth-card" style="max-width: 720px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+            <h2 style="margin:0;">Admin User Management</h2>
+            <button class="btn btn-sm btn-outline" onclick="closeAdminPanel()">Close</button>
+        </div>
+        <p>Manage user approvals and update passwords.</p>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Change Password</th>
+                        <th>Approval</th>
+                    </tr>
+                </thead>
+                <tbody id="adminUserList"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <h3 id="loadStatus" style="font-weight: 500; color: #f8fafc;">Processing Earthwork Calculations...</h3>
+</div>
+
+<div id="toast"><span id="toastMsg">Notification</span></div>
+
+<nav>
+    <div class="logo-container">
+        <div class="logo">Unique Consultancy</div>
+        <span class="logo-tag">By DIPAK SINGHA 2.0</span>
+    </div>
+    
+    <div class="project-actions">
+        <!-- Admin Panel Toggle Button (Only Visible to Admin) -->
+        <button id="adminPanelBtn" class="btn btn-sm btn-amber hidden" onclick="openAdminPanel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Admin Panel
+        </button>
+
+        <!-- Project Save & Load Actions -->
+        <button class="btn btn-sm btn-green" onclick="saveProjectJSON()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Save Project (.JSON)
+        </button>
+        
+        <label for="projectFileInput" class="btn btn-sm btn-amber" style="margin:0; cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Load Project (.JSON)
+        </label>
+        <input type="file" id="projectFileInput" accept=".json" onchange="loadProjectJSON(event)">
+
+        <button class="btn btn-sm btn-outline" onclick="loadSampleData()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            Demo Data
+        </button>
+
+        <button class="btn btn-sm btn-outline" onclick="handleLogout()" style="border-color: var(--danger); color: var(--danger);">
+            Logout
+        </button>
+    </div>
+</nav>
+
+<div class="workspace">
+    <div id="sidebar">
+        <div class="config-box">
+            <label>Layer 1 (OGL / Ground)</label>
+            <input type="text" id="l1Name" value="OGL" onchange="runAnalysis()">
+            <label class="file-upload-btn" for="f1">
+                📄 Choose CSV File for L1
+            </label>
+            <input type="file" id="f1" accept=".csv">
+            <span class="file-status" id="f1Status">No file loaded</span>
+        </div>
+
+        <div class="config-box" style="border-left-color: var(--secondary);">
+            <label>Layer 2 (PGL / Design)</label>
+            <input type="text" id="l2Name" value="PGL" onchange="runAnalysis()">
+            <label class="file-upload-btn" for="f2">
+                📄 Choose CSV File for L2
+            </label>
+            <input type="file" id="f2" accept=".csv">
+            <span class="file-status" id="f2Status">No file loaded</span>
+        </div>
+
+        <div class="config-box" style="border-left-color: var(--purple);">
+            <label style="color:var(--primary); margin-bottom:10px;">Geotechnical & Stripping</label>
+            <label>Stripping Depth (m)</label>
+            <input type="number" id="stripDepth" value="0.00" step="0.05" min="0" onchange="runAnalysis()">
+            
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label>Cut Bulking</label>
+                    <input type="number" id="cutFactor" value="1.00" step="0.05" min="0.1" onchange="toggleVolume(true)">
+                </div>
+                <div style="flex:1;">
+                    <label>Fill Shrink</label>
+                    <input type="number" id="fillFactor" value="1.00" step="0.05" min="0.1" onchange="toggleVolume(true)">
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label>Select Active Chainage</label>
+            <select id="chSelect" onchange="runAnalysis()"></select>
+        </div>
+
+        <button class="btn btn-blue" onclick="toggleVolume()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+            Compute / Refresh Volume Report
+        </button>
+        <button class="btn btn-purple" onclick="exportCSAndAreaPDF()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Export Cross-Section (PDF)
+        </button>
+        <button class="btn btn-green" onclick="exportFinalExcel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            Export Complete Workbook (XLSX)
+        </button>
+    </div>
+
+    <div id="main">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="font-weight:600; font-size:1.1rem; color:#f8fafc;" id="activeChainageTitle">Cross Section Visualizer</h2>
+            <div id="datumLabel" class="datum-info">Datum: -- | Max RL: --</div>
+        </div>
+        
+        <div id="chart-wrapper">
+            <canvas id="csChart"></canvas>
+        </div>
+
+        <!-- AREA CALCULATION TABLE REPORT -->
+        <div id="areaSection" class="card">
+            <h3 style="margin:0 0 10px 0; text-align:center; color:var(--primary); font-weight:600; font-size:1rem;">Area Breakdown Report</h3>
+            <div class="table-responsive">
+                <table id="areaTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Sl</th><th rowspan="2">Dist</th><th rowspan="2" id="hL1">L1</th><th rowspan="2" id="hL2">L2</th>
+                            <th colspan="4" style="background:rgba(239, 68, 68, 0.15); color:#fca5a5;">Cutting</th>
+                            <th colspan="4" style="background:rgba(16, 185, 129, 0.15); color:#6ee7b7;">Filling</th>
+                        </tr>
+                        <tr>
+                            <th>Depth</th><th>Avg</th><th>Width</th><th>Area</th>
+                            <th>Depth</th><th>Avg</th><th>Width</th><th>Area</th>
+                        </tr>
+                    </thead>
+                    <tbody id="areaBody"></tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="7" style="text-align:right">Total Cut Area:</td><td id="areaTotalCut">0.000</td>
+                            <td colspan="3" style="text-align:right">Total Fill Area:</td><td id="areaTotalFill">0.000</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- VOLUME & MASS HAUL REPORT -->
+        <div id="volumeSection" class="card hidden">
+            <h3 style="margin:0 0 15px 0; text-align:center; color:var(--primary); font-weight:600; font-size:1rem;">Volumetric Earthwork & Mass Haul Report</h3>
+            
+            <div class="stat-grid">
+                <div class="stat-card cut">
+                    <h4>Total Cut Volume</h4>
+                    <div class="value" style="color:var(--danger)" id="summaryCut">0.000 m³</div>
+                </div>
+                <div class="stat-card fill">
+                    <h4>Total Fill Volume</h4>
+                    <div class="value" style="color:var(--save)" id="summaryFill">0.000 m³</div>
+                </div>
+                <div class="stat-card net">
+                    <h4>Net Earthwork Balance</h4>
+                    <div class="value" style="color:var(--primary)" id="summaryNet">0.000 m³</div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="volumeTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">SL</th><th rowspan="2">Chainage</th><th rowspan="2">Dist</th>
+                            <th colspan="3" style="background:rgba(239, 68, 68, 0.15); color:#fca5a5;">Cutting</th>
+                            <th colspan="3" style="background:rgba(16, 185, 129, 0.15); color:#6ee7b7;">Filling</th>
+                        </tr>
+                        <tr>
+                            <th>Area</th><th>Avg Area</th><th>Vol</th>
+                            <th>Area</th><th>Avg Area</th><th>Vol</th>
+                        </tr>
+                    </thead>
+                    <tbody id="volumeBody"></tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="5" style="text-align:right">Total Cut Volume:</td><td id="volTotalCut">0.000</td>
+                            <td colspan="2" style="text-align:right">Total Fill Volume:</td><td id="volTotalFill">0.000</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <h4 style="margin:25px 0 10px 0; text-align:center; color:var(--primary); font-weight:600; font-size:0.95rem;">Mass Haul Diagram (Cumulative Earth Mass Balance)</h4>
+            <div id="masshaul-wrapper">
+                <canvas id="massHaulChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// User Management System (Stored in localStorage)
+const DEFAULT_USERS = [
+    { name: "System Admin", username: "admin", password: "123", role: "admin", status: "approved" },
+    { name: "Demo User", username: "user", password: "123", role: "user", status: "approved" }
+];
+
+function getUsers() {
+    const saved = localStorage.getItem('earthwork_users');
+    if (!saved) {
+        localStorage.setItem('earthwork_users', JSON.stringify(DEFAULT_USERS));
+        return DEFAULT_USERS;
+    }
+    return JSON.parse(saved);
+}
+
+function saveUsers(users) {
+    localStorage.setItem('earthwork_users', JSON.stringify(users));
+}
+
+// Auth Handlers
+function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUsername').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    const errLabel = document.getElementById('loginError');
+
+    const users = getUsers();
+    const matched = users.find(u => u.username === user && u.password === pass);
+
+    if (!matched) {
+        errLabel.innerText = "Invalid username or password.";
+        errLabel.style.display = 'block';
+        return;
+    }
+
+    if (matched.status !== 'approved') {
+        errLabel.innerText = "Account request pending Admin approval.";
+        errLabel.style.display = 'block';
+        return;
+    }
+
+    sessionStorage.setItem('isEarthworkLoggedIn', 'true');
+    sessionStorage.setItem('loggedInUserRole', matched.role);
+    sessionStorage.setItem('loggedInUsername', matched.username);
+
+    document.getElementById('loginModal').classList.add('hidden');
+    errLabel.style.display = 'none';
+    
+    checkAdminRoleUI();
+    loadSampleData();
+    showToast(`Welcome back, ${matched.name}!`);
+}
+
+function handleSignupRequest(e) {
+    e.preventDefault();
+    const name = document.getElementById('signupName').value.trim();
+    const user = document.getElementById('signupUsername').value.trim();
+    const pass = document.getElementById('signupPassword').value.trim();
+    const msg = document.getElementById('signupMsg');
+
+    let users = getUsers();
+    if (users.some(u => u.username.toLowerCase() === user.toLowerCase())) {
+        msg.className = "auth-msg error";
+        msg.innerText = "Username already exists! Choose another.";
+        msg.style.display = 'block';
+        return;
+    }
+
+    users.push({ name, username: user, password: pass, role: "user", status: "pending" });
+    saveUsers(users);
+
+    msg.className = "auth-msg success";
+    msg.innerText = "Signup request submitted! Please wait for Admin approval.";
+    msg.style.display = 'block';
+
+    setTimeout(() => {
+        showLoginModal();
+        msg.style.display = 'none';
+    }, 2500);
+}
+
+function handleLogout() {
+    sessionStorage.removeItem('isEarthworkLoggedIn');
+    sessionStorage.removeItem('loggedInUserRole');
+    sessionStorage.removeItem('loggedInUsername');
+    location.reload();
+}
+
+function showSignupModal() {
+    document.getElementById('loginModal').classList.add('hidden');
+    document.getElementById('signupModal').classList.remove('hidden');
+}
+
+function showLoginModal() {
+    document.getElementById('signupModal').classList.add('hidden');
+    document.getElementById('loginModal').classList.remove('hidden');
+}
+
+function checkAdminRoleUI() {
+    const role = sessionStorage.getItem('loggedInUserRole');
+    const adminBtn = document.getElementById('adminPanelBtn');
+    if (role === 'admin') {
+        adminBtn.classList.remove('hidden');
+    } else {
+        adminBtn.classList.add('hidden');
+    }
+}
+
+// Admin Panel Logic
+function openAdminPanel() {
+    renderAdminUserList();
+    document.getElementById('adminPanelModal').classList.remove('hidden');
+}
+
+function closeAdminPanel() {
+    document.getElementById('adminPanelModal').classList.add('hidden');
+}
+
+function renderAdminUserList() {
+    const users = getUsers();
+    const tbody = document.getElementById('adminUserList');
+    tbody.innerHTML = "";
+
+    users.forEach(u => {
+        if (u.role === 'admin') return; // Hide admin from moderation list
+
+        const isApproved = u.status === 'approved';
+        const badgeHtml = isApproved 
+            ? `<span class="badge badge-approved">Approved</span>`
+            : `<span class="badge badge-pending">Pending</span>`;
+
+        const actionBtn = isApproved
+            ? `<button class="btn btn-sm btn-danger" onclick="toggleUserStatus('${u.username}', 'pending')">Revoke</button>`
+            : `<button class="btn btn-sm btn-green" onclick="toggleUserStatus('${u.username}', 'approved')">Approve</button>`;
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${u.name}</td>
+                <td>${u.username}</td>
+                <td>${badgeHtml}</td>
+                <td>
+                    <div class="pass-edit-group">
+                        <input type="password" class="pass-input-sm" id="newPass_${u.username}" placeholder="New Pass">
+                        <button class="btn btn-sm btn-purple" onclick="changeUserPassword('${u.username}')">Save</button>
+                    </div>
+                </td>
+                <td>${actionBtn}</td>
+            </tr>
+        `;
+    });
+}
+
+function changeUserPassword(username) {
+    const input = document.getElementById(`newPass_${username}`);
+    const newPass = input.value.trim();
+
+    if (!newPass) {
+        showToast("Please enter a new password first.");
+        return;
+    }
+
+    let users = getUsers();
+    const user = users.find(u => u.username === username);
+    if (user) {
+        user.password = newPass;
+        saveUsers(users);
+        input.value = "";
+        showToast(`Password updated for user '${username}'!`);
+    }
+}
+
+function toggleUserStatus(username, newStatus) {
+    let users = getUsers();
+    const user = users.find(u => u.username === username);
+    if (user) {
+        user.status = newStatus;
+        saveUsers(users);
+        renderAdminUserList();
+        showToast(`User '${username}' ${newStatus === 'approved' ? 'approved' : 'status updated'}.`);
+    }
+}
+
+// Global Data Stores
+let data1 = {}, data2 = {};
+let file1Name = "", file2Name = "";
+let myChart = null, massChart = null;
+
+// Utility Toast Function
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// CSV Processing Logic
+async function loadCSV(file, store) {
+    return new Promise(res => {
+        Papa.parse(file, { 
+            dynamicTyping: true, 
+            skipEmptyLines: true, 
+            complete: (r) => {
+                r.data.forEach(row => { 
+                    if(row.length >= 3 && !isNaN(parseFloat(row[1])) && !isNaN(parseFloat(row[2]))) {
+                        const ch = row[0].toString().trim();
+                        if(!store[ch]) store[ch] = [];
+                        store[ch].push({ x: parseFloat(row[1]), y: parseFloat(row[2]) });
+                    }
+                });
+                Object.keys(store).forEach(k => store[k].sort((a,b) => a.x - b.x));
+                res();
+            }
+        });
+    });
+}
+
+document.getElementById('f1').onchange = async (e) => { 
+    if(e.target.files[0]) {
+        file1Name = e.target.files[0].name;
+        document.getElementById('f1Status').innerText = file1Name;
+        data1 = {};
+        await loadCSV(e.target.files[0], data1); 
+        syncChainages(); 
+        showToast("Layer 1 CSV Loaded Successfully!");
+    }
+};
+
+document.getElementById('f2').onchange = async (e) => { 
+    if(e.target.files[0]) {
+        file2Name = e.target.files[0].name;
+        document.getElementById('f2Status').innerText = file2Name;
+        data2 = {};
+        await loadCSV(e.target.files[0], data2); 
+        syncChainages(); 
+        showToast("Layer 2 CSV Loaded Successfully!");
+    }
+};
+
+function syncChainages() {
+    const common = Object.keys(data1).filter(c => data2[c]).sort((a,b) => parseFloat(a)-parseFloat(b));
+    const chSelect = document.getElementById('chSelect');
+    
+    if(common.length > 0) {
+        const curVal = chSelect.value;
+        chSelect.innerHTML = common.map(c => `<option value="${c}">${c}</option>`).join('');
+        if(common.includes(curVal)) chSelect.value = curVal;
+        runAnalysis();
+    } else {
+        chSelect.innerHTML = '<option value="">No Common Chainages</option>';
+    }
+}
+
+function getElev(x, pts) {
+    if (!pts || pts.length === 0 || x < pts[0].x || x > pts[pts.length-1].x) return null;
+    for(let i=0; i<pts.length-1; i++) {
+        if(x >= pts[i].x && x <= pts[i+1].x) {
+            if(pts[i+1].x === pts[i].x) return pts[i].y;
+            let t = (x - pts[i].x) / (pts[i+1].x - pts[i].x);
+            return pts[i].y + t * (pts[i+1].y - pts[i].y);
+        }
+    }
+    return null;
+}
+
+function runAnalysis() {
+    const ch = document.getElementById('chSelect').value;
+    if(!ch || !data1[ch] || !data2[ch]) return;
+
+    document.getElementById('activeChainageTitle').innerText = `Cross Section - Chainage: ${parseFloat(ch).toFixed(2)}`;
+
+    const strip = parseFloat(document.getElementById('stripDepth').value) || 0;
+    
+    // Apply Stripping Depth to Layer 1 (OGL)
+    const l1 = data1[ch].map(p => ({ x: p.x, y: p.y - strip }));
+    const l2 = data2[ch];
+
+    const n1 = document.getElementById('l1Name').value || "Layer 1", n2 = document.getElementById('l2Name').value || "Layer 2";
+    document.getElementById('hL1').innerText = n1 + (strip > 0 ? ` (-${strip}m)` : ''); 
+    document.getElementById('hL2').innerText = n2;
+
+    const startX = Math.max(l1[0].x, l2[0].x), endX = Math.min(l1[l1.length-1].x, l2[l2.length-1].x);
+    let rawX = [...new Set([...l1.map(p=>p.x), ...l2.map(p=>p.x)])].filter(x => x>=startX && x<=endX).sort((a,b) => a-b);
+    
+    let allX = [];
+    for(let i=0; i<rawX.length-1; i++) {
+        let x1=rawX[i], x2=rawX[i+1];
+        let d1=getElev(x1, l1)-getElev(x1, l2), d2=getElev(x2, l1)-getElev(x2, l2);
+        allX.push(x1);
+        if((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) {
+            let intersectX = x1 + (x2 - x1) * (Math.abs(d1) / (Math.abs(d1) + Math.abs(d2)));
+            allX.push(intersectX);
+        }
+    }
+    allX.push(rawX[rawX.length-1]);
+    allX = [...new Set(allX)].sort((a,b) => a-b);
+
+    let sumC=0, sumF=0, tbody=document.getElementById('areaBody'), prev=null;
+    tbody.innerHTML = "";
+
+    allX.forEach((x, i) => {
+        const y1=getElev(x, l1), y2=getElev(x, l2);
+        const diff = y1 - y2;
+        const cur = { x, y1, y2, c: diff > 0.0001 ? diff : 0, f: diff < -0.0001 ? Math.abs(diff) : 0 };
+        
+        let row = `<td>${i+1}</td><td>${x.toFixed(3)}</td><td>${y1.toFixed(3)}</td><td>${y2.toFixed(3)}</td>`;
+        if(prev) {
+            const w = cur.x - prev.x, avgC = (cur.c+prev.c)/2, avgF = (cur.f+prev.f)/2, aC = avgC*w, aF = avgF*w;
+            sumC += aC; sumF += aF;
+            row += `<td>${cur.c.toFixed(3)}</td><td>${avgC.toFixed(4)}</td><td>${w.toFixed(3)}</td><td>${aC.toFixed(3)}</td>
+                    <td>${cur.f.toFixed(3)}</td><td>${avgF.toFixed(4)}</td><td>${w.toFixed(3)}</td><td>${aF.toFixed(3)}</td>`;
+        } else {
+            row += `<td>${cur.c.toFixed(3)}</td><td>0.0000</td><td>0.000</td><td>0.000</td><td>${cur.f.toFixed(3)}</td><td>0.0000</td><td>0.000</td><td>0.000</td>`;
+        }
+        tbody.innerHTML += `<tr>${row}</tr>`;
+        prev = cur;
+    });
+
+    document.getElementById('areaTotalCut').innerText = sumC.toFixed(3);
+    document.getElementById('areaTotalFill').innerText = sumF.toFixed(3);
+    
+    // Calculate Datum (Min) and Top Grid Limit (Max RL + 2m)
+    const minVal = Math.min(...l1.map(p=>p.y), ...l2.map(p=>p.y));
+    const maxVal = Math.max(...l1.map(p=>p.y), ...l2.map(p=>p.y));
+    const datum = Math.floor(minVal - 2);
+    const topLimit = Math.ceil(maxVal + 2);
+
+    document.getElementById('datumLabel').innerText = `Datum: ${datum.toFixed(2)} m | Max RL: ${maxVal.toFixed(2)} m (Grid Top: ${topLimit.toFixed(2)} m)`;
+    
+    setTimeout(() => drawChart(l1, l2, n1, n2, ch, datum, topLimit), 30);
+
+    if (!document.getElementById('volumeSection').classList.contains('hidden')) {
+        toggleVolume(true);
+    }
+}
+
+function drawChart(p1, p2, n1, n2, ch, datum, topLimit) {
+    const ctx = document.getElementById('csChart').getContext('2d');
+    if(myChart) myChart.destroy();
+    
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                { label: n1, data: p1, borderColor: '#10b981', backgroundColor:'rgba(16,185,129,0.1)', dragData: true, tension: 0, pointRadius: 5, pointHoverRadius: 8 },
+                { label: n2, data: p2, borderColor: '#ef4444', borderDash: [5,5], dragData: true, tension: 0, pointRadius: 5, pointHoverRadius: 8 }
+            ]
+        },
+        options: {
+            animation: false, 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { labels: { color: '#f8fafc', font: { family: 'Poppins', size: 12 } } },
+                dragData: { 
+                    round: 2, 
+                    onDragEnd: (e, datasetIndex, index, value) => { 
+                        if(datasetIndex === 0) data1[ch][index].y = value.y; 
+                        else data2[ch][index].y = value.y; 
+                        runAnalysis(); 
+                        showToast(`Point updated on ${datasetIndex===0?n1:n2}`);
+                    }
+                }
+            },
+            scales: { 
+                x: { type:'linear', title: { display: true, text: 'Distance / Offset (m)', color: '#94a3b8' }, grid:{ color:'rgba(255,255,255,0.06)' }, ticks:{ color:'#94a3b8' } }, 
+                y: { type:'linear', min: datum, max: topLimit, title: { display: true, text: 'Elevation (m)', color: '#94a3b8' }, grid:{ color:'rgba(255,255,255,0.06)' }, ticks:{ color:'#94a3b8' } } 
+            }
+        }
+    });
+}
+
+function toggleVolume(keepVisible = false) {
+    const common = Object.keys(data1).filter(c => data2[c]).sort((a,b) => parseFloat(a)-parseFloat(b));
+    if(!common.length) {
+        showToast("Please upload L1 & L2 datasets first!");
+        return;
+    }
+
+    const tbody = document.getElementById('volumeBody');
+    const strip = parseFloat(document.getElementById('stripDepth').value) || 0;
+    const cutFact = parseFloat(document.getElementById('cutFactor').value) || 1.0;
+    const fillFact = parseFloat(document.getElementById('fillFactor').value) || 1.0;
+
+    let tC=0, tF=0, prev=null;
+    tbody.innerHTML = "";
+    
+    let massLabels = [], massData = [], cumNet = 0;
+
+    common.forEach((ch, i) => {
+        const la = data1[ch].map(p => ({ x: p.x, y: p.y - strip }));
+        const lb = data2[ch];
+
+        const sX=Math.max(la[0].x, lb[0].x), eX=Math.min(la[la.length-1].x, lb[lb.length-1].x);
+        let rx=[...new Set([...la.map(p=>p.x), ...lb.map(p=>p.x)])].filter(x=>x>=sX && x<=eX).sort((a,b)=>a-b);
+        let ax=[];
+        for(let j=0; j<rx.length-1; j++){
+            let x1=rx[j], x2=rx[j+1], d1=getElev(x1,la)-getElev(x1,lb), d2=getElev(x2,la)-getElev(x2,lb);
+            ax.push(x1); if((d1>0 && d2<0)||(d1<0 && d2>0)) ax.push(x1+(x2-x1)*(Math.abs(d1)/(Math.abs(d1)+Math.abs(d2))));
+        }
+        ax.push(rx[rx.length-1]); ax=[...new Set(ax)].sort((a,b)=>a-b);
+        
+        let aC=0, aF=0, p=null;
+        ax.forEach(x => {
+            const y1=getElev(x,la), y2=getElev(x,lb), cur={x, c:(y1-y2)>0?(y1-y2):0, f:(y2-y1)>0?(y2-y1):0};
+            if(p){ let w=cur.x-p.x; aC+=((cur.c+p.c)/2)*w; aF+=((cur.f+p.f)/2)*w; }
+            p=cur;
+        });
+
+        let d=0, avgC=0, vC=0, avgF=0, vF=0;
+        if(prev){ 
+            d=parseFloat(ch)-parseFloat(prev.ch); 
+            avgC=(aC+prev.aC)/2; 
+            vC=avgC*d*cutFact; 
+            avgF=(aF+prev.aF)/2; 
+            vF=avgF*d*fillFact; 
+            tC+=vC; tF+=vF; 
+            cumNet += (vC - vF);
+        }
+
+        massLabels.push(ch);
+        massData.push(cumNet);
+
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${parseFloat(ch).toFixed(2)}</td><td>${d.toFixed(2)}</td><td>${aC.toFixed(3)}</td><td>${avgC.toFixed(3)}</td><td>${vC.toFixed(3)}</td><td>${aF.toFixed(3)}</td><td>${avgF.toFixed(3)}</td><td>${vF.toFixed(3)}</td></tr>`;
+        prev = { ch, aC, aF };
+    });
+
+    document.getElementById('volTotalCut').innerText = tC.toFixed(3);
+    document.getElementById('volTotalFill').innerText = tF.toFixed(3);
+    
+    document.getElementById('summaryCut').innerText = tC.toFixed(2) + ' m³';
+    document.getElementById('summaryFill').innerText = tF.toFixed(2) + ' m³';
+    const net = tC - tF;
+    document.getElementById('summaryNet').innerText = Math.abs(net).toFixed(2) + (net >= 0 ? ' m³ (Cut Surplus)' : ' m³ (Fill Deficit)');
+
+    if (!keepVisible) {
+        document.getElementById('volumeSection').classList.toggle('hidden');
+    }
+
+    drawMassHaulChart(massLabels, massData);
+}
+
+function drawMassHaulChart(labels, data) {
+    const ctx = document.getElementById('massHaulChart').getContext('2d');
+    if(massChart) massChart.destroy();
+    
+    massChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Cumulative Earth Balance (m³)',
+                data: data,
+                borderColor: '#00d2ff',
+                backgroundColor: 'rgba(0, 210, 255, 0.12)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#f8fafc' } } },
+            scales: {
+                x: { title: { display: true, text: 'Chainage', color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#94a3b8' } },
+                y: { title: { display: true, text: 'Net Volume (m³)', color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+}
+
+function saveProjectJSON() {
+    if(Object.keys(data1).length === 0 && Object.keys(data2).length === 0) {
+        showToast("No data available to save! Load data first.");
+        return;
+    }
+
+    const projectData = {
+        version: "3.0",
+        timestamp: new Date().toISOString(),
+        config: {
+            l1Name: document.getElementById('l1Name').value,
+            l2Name: document.getElementById('l2Name').value,
+            stripDepth: parseFloat(document.getElementById('stripDepth').value) || 0,
+            cutFactor: parseFloat(document.getElementById('cutFactor').value) || 1.0,
+            fillFactor: parseFloat(document.getElementById('fillFactor').value) || 1.0,
+            selectedChainage: document.getElementById('chSelect').value,
+            file1Name: file1Name,
+            file2Name: file2Name
+        },
+        data1: data1,
+        data2: data2
+    };
+
+    const jsonStr = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Earthwork_Project_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast("Project saved successfully as JSON!");
+}
+
+function loadProjectJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const project = JSON.parse(e.target.result);
+            
+            if(!project.data1 || !project.data2) {
+                throw new Error("Invalid project schema");
+            }
+
+            data1 = project.data1;
+            data2 = project.data2;
+
+            if(project.config) {
+                document.getElementById('l1Name').value = project.config.l1Name || "OGL";
+                document.getElementById('l2Name').value = project.config.l2Name || "PGL";
+                document.getElementById('stripDepth').value = project.config.stripDepth || 0;
+                document.getElementById('cutFactor').value = project.config.cutFactor || 1;
+                document.getElementById('fillFactor').value = project.config.fillFactor || 1;
+                
+                if(project.config.file1Name) document.getElementById('f1Status').innerText = project.config.file1Name;
+                if(project.config.file2Name) document.getElementById('f2Status').innerText = project.config.file2Name;
+            }
+
+            syncChainages();
+
+            if(project.config && project.config.selectedChainage) {
+                document.getElementById('chSelect').value = project.config.selectedChainage;
+                runAnalysis();
+            }
+
+            showToast("Project restored successfully!");
+        } catch(err) {
+            console.error(err);
+            alert("Error loading project file. Make sure it is a valid Earthwork .JSON file.");
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+async function exportCSAndAreaPDF() {
+    const { jsPDF } = window.jspdf;
+    const common = Object.keys(data1).filter(c => data2[c]).sort((a,b) => parseFloat(a)-parseFloat(b));
+    if (!common.length) {
+        showToast("No cross-section data available to export!");
+        return;
+    }
+    
+    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loadStatus').innerText = "Generating PDF Section Reports...";
+
+    const doc = new jsPDF('l', 'mm', 'a4');
+    for (let i = 0; i < common.length; i++) {
+        document.getElementById('chSelect').value = common[i];
+        runAnalysis();
+        await new Promise(r => setTimeout(r, 200));
+        
+        if (i > 0) doc.addPage();
+        doc.setFontSize(14);
+        doc.text(`CROSS SECTION REPORT - CHAINAGE: ${parseFloat(common[i]).toFixed(2)} m`, 148, 12, { align: 'center' });
+        doc.addImage(document.getElementById('csChart').toDataURL('image/png'), 'PNG', 10, 18, 277, 75);
+        doc.autoTable({ html: '#areaTable', startY: 98, theme: 'grid', styles: { fontSize: 7 } });
+    }
+    doc.save(`Earthwork_CrossSections_Report.pdf`);
+    document.getElementById('loader').style.display = 'none';
+    showToast("PDF Export Complete!");
+}
+
+function exportFinalExcel() {
+    if(!Object.keys(data1).length) {
+        showToast("No data available to export!");
+        return;
+    }
+
+    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loadStatus').innerText = "Generating Excel Workbook...";
+    
+    setTimeout(() => {
+        const wb = XLSX.utils.book_new();
+        const common = Object.keys(data1).filter(c => data2[c]).sort((a,b) => parseFloat(a)-parseFloat(b));
+        
+        toggleVolume(true);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(document.getElementById('volumeTable')), "Volume_Summary");
+        
+        common.forEach(ch => {
+            document.getElementById('chSelect').value = ch;
+            runAnalysis();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(document.getElementById('areaTable')), `CH_${parseFloat(ch).toFixed(1)}`.substring(0,31));
+        });
+
+        const r1 = [["CH", "Offset", "Level"]];
+        Object.keys(data1).sort((a,b)=>parseFloat(a)-parseFloat(b)).forEach(ch => data1[ch].forEach(p => r1.push([ch, p.x, p.y])));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(r1), "Raw_Layer1");
+
+        const r2 = [["CH", "Offset", "Level"]];
+        Object.keys(data2).sort((a,b)=>parseFloat(a)-parseFloat(b)).forEach(ch => data2[ch].forEach(p => r2.push([ch, p.x, p.y])));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(r2), "Raw_Layer2");
+
+        XLSX.writeFile(wb, "Earthwork_Full_Project_Report.xlsx");
+        document.getElementById('loader').style.display = 'none';
+        runAnalysis();
+        showToast("Excel Export Complete!");
+    }, 100);
+}
+
+function loadSampleData() {
+    data1 = {
+        "0": [{x: -10, y: 105.2}, {x: -5, y: 104.8}, {x: 0, y: 104.5}, {x: 5, y: 104.1}, {x: 10, y: 103.8}],
+        "20": [{x: -10, y: 105.5}, {x: -5, y: 105.0}, {x: 0, y: 104.8}, {x: 5, y: 104.2}, {x: 10, y: 103.9}],
+        "40": [{x: -10, y: 106.1}, {x: -5, y: 105.4}, {x: 0, y: 105.0}, {x: 5, y: 104.6}, {x: 10, y: 104.1}]
+    };
+
+    data2 = {
+        "0": [{x: -10, y: 103.5}, {x: -5, y: 103.5}, {x: 0, y: 103.5}, {x: 5, y: 103.5}, {x: 10, y: 103.5}],
+        "20": [{x: -10, y: 104.0}, {x: -5, y: 104.0}, {x: 0, y: 104.0}, {x: 5, y: 104.0}, {x: 10, y: 104.0}],
+        "40": [{x: -10, y: 104.5}, {x: -5, y: 104.5}, {x: 0, y: 104.5}, {x: 5, y: 104.5}, {x: 10, y: 104.5}]
+    };
+
+    document.getElementById('f1Status').innerText = "Demo_OGL.csv";
+    document.getElementById('f2Status').innerText = "Demo_PGL.csv";
+
+    syncChainages();
+}
+
+window.onload = function() {
+    if (sessionStorage.getItem('isEarthworkLoggedIn') === 'true') {
+        document.getElementById('loginModal').classList.add('hidden');
+        checkAdminRoleUI();
+        loadSampleData();
+    } else {
+        document.getElementById('loginModal').classList.remove('hidden');
+    }
+};
+</script>
+</body>
+</html>

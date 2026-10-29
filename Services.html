@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Tools | Unique Consultancy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --text: #f8fafc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo { font-weight: 600; font-size: 1.5rem; color: var(--primary); }
+
+        .nav-links { list-style: none; display: flex; gap: 30px; }
+
+        .nav-links a { text-decoration: none; color: var(--text); font-size: 0.9rem; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+
+        /* Engineering Header */
+        .header {
+            padding: 80px 8% 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Tools Grid */
+        .tools-container {
+            padding: 40px 8%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tool-card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            transition: 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+        }
+
+        .tool-card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .feature-list li {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .feature-list li::before {
+            content: "→";
+            color: var(--primary);
+            margin-right: 12px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer { text-align: center; padding: 60px; color: #64748b; border-top: 1px solid var(--glass); }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Unique Consultancy</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="Earthwork.html">Earthwork</a></li>
+            <li><a href="Services.html">Services</a></li>
+            <li><a href="Contact_Us.html">Contact Us</a></li>
+        </ul>
+    </nav>
+
+    <div class="header">
+        <h1>Engineering & Surveying Tools</h1>
+        <p>Advanced digital solutions for road design, cross-section automation, and earthwork calculations.</p>
+    </div>
+
+    <main class="tools-container">
+        <div class="tool-card">
+            <h2>CADD Automation</h2>
+            <p>Streamlining drafting processes with intelligent templates designed for civil engineering standards.</p>
+            <ul class="feature-list">
+                <li>CADD template integration</li>
+                <li>Automated cross-section generation</li>
+                <li>Dynamic design layer logic</li>
+                <li>Customized plotting styles</li>
+            </ul>
+        </div>
+
+        <div class="tool-card">
+            <h2>Road Design & Geometry</h2>
+            <p>Precise mathematical models for roadway formation and geometric alignment.</p>
+            <ul class="feature-list">
+                <li>Formation level & camber calculations</li>
+                <li>Horizontal center shifting logic</li>
+                <li>Side slope extensions (Cutting/Filling)</li>
+                <li>Super-elevation & transition modeling</li>
+            </ul>
+        </div>
+
+        <div class="tool-card">
+            <h2>Quantity & Earthwork</h2>
+            <p>High-accuracy volume and area calculations for efficient project management.</p>
+            <ul class="feature-list">
+                <li>Automated Area & Volume calculation</li>
+                <li>Mass haul diagram generation</li>
+                <li>Material quantity estimation</li>
+                <li>Exportable reports for survey data</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Unique Consultancy. Built for Efficiency. Designed for Growth.</p>
+    </footer>
+
+</body>
+</html>
