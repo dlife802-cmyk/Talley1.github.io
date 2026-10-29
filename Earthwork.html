@@ -672,7 +672,7 @@ function saveUsers(users) {
     localStorage.setItem('earthwork_users', JSON.stringify(users));
 }
 
-// Auth Handlers (Hybrid: Google Sheet Verified + Fallback)
+// Auth Handlers (Hybrid: Google Sheet Verified + Safe Local Fallback)
 async function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('loginUsername').value.trim();
@@ -681,7 +681,7 @@ async function handleLogin(e) {
 
     const sheetUrl = getSheetApiUrl();
 
-    if (sheetUrl) {
+    if (sheetUrl && sheetUrl.startsWith('http')) {
         try {
             const res = await fetch(sheetUrl, {
                 method: "POST",
@@ -707,11 +707,11 @@ async function handleLogin(e) {
                 return;
             }
         } catch (err) {
-            console.warn("Sheet API connection failed, falling back to local credentials...", err);
+            console.warn("Sheet API connection skipped/failed, using local credential database...", err);
         }
     }
 
-    // Direct Credential Check from PASSWORD Sheet Database
+    // Direct Credential Check from Local / Sheet Database Fallback
     const users = getUsers();
     const matched = users.find(u => u.username.toLowerCase() === user.toLowerCase() && u.password === pass);
 
@@ -748,7 +748,7 @@ async function handleSignupRequest(e) {
 
     const sheetUrl = getSheetApiUrl();
 
-    if (sheetUrl) {
+    if (sheetUrl && sheetUrl.startsWith('http')) {
         try {
             const res = await fetch(sheetUrl, {
                 method: "POST",
