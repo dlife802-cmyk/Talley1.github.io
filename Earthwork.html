@@ -424,6 +424,14 @@
         </div>
         <p>Manage user approvals and update passwords.</p>
 
+        <div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.2); border-radius: 8px; text-align: left;">
+            <label style="color: var(--primary); margin-bottom: 6px;">Google Sheet Web App API URL</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="sheetApiUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 0;">
+                <button class="btn btn-sm btn-blue" onclick="saveSheetApiUrl()" style="width: auto;">Link Sheet</button>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="admin-table">
                 <thead>
@@ -630,11 +638,21 @@
 </div>
 
 <script>
-// User Management System (Stored in localStorage)
+// Default Local Fallback Users
 const DEFAULT_USERS = [
-    { name: "System Admin", username: "admin", password: "543210", role: "admin", status: "approved" },
+    { name: "System Admin", username: "admin", password: "123", role: "admin", status: "approved" },
     { name: "Demo User", username: "user", password: "123", role: "user", status: "approved" }
 ];
+
+function getSheetApiUrl() {
+    return localStorage.getItem('earthwork_sheet_url') || "";
+}
+
+function saveSheetApiUrl() {
+    const url = document.getElementById('sheetApiUrlInput').value.trim();
+    localStorage.setItem('earthwork_sheet_url', url);
+    showToast("Google Sheet API Endpoint saved successfully!");
+}
 
 function getUsers() {
     const saved = localStorage.getItem('earthwork_users');
@@ -649,13 +667,46 @@ function saveUsers(users) {
     localStorage.setItem('earthwork_users', JSON.stringify(users));
 }
 
-// Auth Handlers
-function handleLogin(e) {
+// Auth Handlers (Hybrid: Online Google Sheet + Offline Local Fallback)
+async function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('loginUsername').value.trim();
     const pass = document.getElementById('loginPassword').value.trim();
     const errLabel = document.getElementById('loginError');
 
+    const sheetUrl = getSheetApiUrl();
+
+    if (sheetUrl) {
+        try {
+            const res = await fetch(sheetUrl, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", username: user, password: pass })
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                sessionStorage.setItem('isEarthworkLoggedIn', 'true');
+                sessionStorage.setItem('loggedInUserRole', result.role || "user");
+                sessionStorage.setItem('loggedInUsername', user);
+
+                document.getElementById('loginModal').classList.add('hidden');
+                errLabel.style.display = 'none';
+                
+                checkAdminRoleUI();
+                loadSampleData();
+                showToast(`Welcome back, ${result.name || user}! (Verified via Google Sheet)`);
+                return;
+            } else {
+                errLabel.innerText = result.message || "Invalid credentials or pending approval.";
+                errLabel.style.display = 'block';
+                return;
+            }
+        } catch (err) {
+            console.warn("Sheet API connection failed, falling back to local database...", err);
+        }
+    }
+
+    // Fallback Local Storage Check
     const users = getUsers();
     const matched = users.find(u => u.username === user && u.password === pass);
 
@@ -683,13 +734,41 @@ function handleLogin(e) {
     showToast(`Welcome back, ${matched.name}!`);
 }
 
-function handleSignupRequest(e) {
+async function handleSignupRequest(e) {
     e.preventDefault();
     const name = document.getElementById('signupName').value.trim();
     const user = document.getElementById('signupUsername').value.trim();
     const pass = document.getElementById('signupPassword').value.trim();
     const msg = document.getElementById('signupMsg');
 
+    const sheetUrl = getSheetApiUrl();
+
+    if (sheetUrl) {
+        try {
+            const res = await fetch(sheetUrl, {
+                method: "POST",
+                body: JSON.stringify({ action: "signup", name, username: user, password: pass })
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                msg.className = "auth-msg success";
+                msg.innerText = result.message || "Signup request saved to Google Sheet! Awaiting Admin approval.";
+                msg.style.display = 'block';
+                setTimeout(() => { showLoginModal(); msg.style.display = 'none'; }, 2500);
+                return;
+            } else {
+                msg.className = "auth-msg error";
+                msg.innerText = result.message || "Username already exists.";
+                msg.style.display = 'block';
+                return;
+            }
+        } catch (err) {
+            console.warn("Sheet API failed, saving signup locally...", err);
+        }
+    }
+
+    // Fallback Local Storage Signup
     let users = getUsers();
     if (users.some(u => u.username.toLowerCase() === user.toLowerCase())) {
         msg.className = "auth-msg error";
@@ -740,6 +819,7 @@ function checkAdminRoleUI() {
 
 // Admin Panel Logic
 function openAdminPanel() {
+    document.getElementById('sheetApiUrlInput').value = getSheetApiUrl();
     renderAdminUserList();
     document.getElementById('adminPanelModal').classList.remove('hidden');
 }
