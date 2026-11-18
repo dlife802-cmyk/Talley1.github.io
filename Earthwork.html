@@ -203,6 +203,10 @@
             outline: none;
             transition: all 0.2s;
         }
+        select option {
+            background: #1e293b;
+            color: #f8fafc;
+        }
         input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
@@ -451,6 +455,39 @@
     </div>
 </div>
 
+<!-- Add Node Popup Modal -->
+<div id="addNodeModal" class="modal-overlay hidden">
+    <div class="auth-card" style="max-width: 380px;">
+        <h2>Add Cross-Section Node</h2>
+        <p>Insert a new Offset & Level point into the active chainage.</p>
+
+        <form class="auth-form" onsubmit="confirmAddNode(event)">
+            <div class="input-group">
+                <label>Layer</label>
+                <select id="nodeLayerSelect" required>
+                    <option value="L1">OGL</option>
+                    <option value="L2">PGL</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Offset (m)</label>
+                <input type="number" id="nodeOffsetInput" step="any" placeholder="e.g. -2.50 or 7.50" required>
+            </div>
+
+            <div class="input-group">
+                <label>Level / RL (m)</label>
+                <input type="number" id="nodeLevelInput" step="any" placeholder="e.g. 104.25" required>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top: 15px;">
+                <button type="button" class="btn btn-outline" onclick="closeAddNodeModal()">Cancel</button>
+                <button type="submit" class="btn btn-blue">OK</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div id="loader">
     <div class="spinner"></div>
     <h3 id="loadStatus" style="font-weight: 500; color: #f8fafc;">Processing Earthwork Calculations...</h3>
@@ -553,9 +590,15 @@
     </div>
 
     <div id="main">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h2 style="font-weight:600; font-size:1.1rem; color:#f8fafc;" id="activeChainageTitle">Cross Section Visualizer (Scale 1:100)</h2>
-            <div id="datumLabel" class="datum-info">Datum: -- | Max RL: --</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button class="btn btn-sm btn-blue" onclick="openAddNodeModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Node
+                </button>
+                <div id="datumLabel" class="datum-info">Datum: -- | Max RL: --</div>
+            </div>
         </div>
         
         <div id="chart-wrapper">
@@ -878,6 +921,61 @@ function toggleUserStatus(username, newStatus) {
         renderAdminUserList();
         showToast(`User '${username}' ${newStatus === 'approved' ? 'approved' : 'status updated'}.`);
     }
+}
+
+// Add Node Modal Logic
+function openAddNodeModal() {
+    const ch = document.getElementById('chSelect').value;
+    if (!ch || !data1[ch] || !data2[ch]) {
+        showToast("Please select a valid active chainage first!");
+        return;
+    }
+
+    const n1 = document.getElementById('l1Name').value || "OGL";
+    const n2 = document.getElementById('l2Name').value || "PGL";
+    const layerSelect = document.getElementById('nodeLayerSelect');
+    layerSelect.options[0].text = n1;
+    layerSelect.options[1].text = n2;
+
+    document.getElementById('nodeOffsetInput').value = "";
+    document.getElementById('nodeLevelInput').value = "";
+    document.getElementById('addNodeModal').classList.remove('hidden');
+    document.getElementById('nodeOffsetInput').focus();
+}
+
+function closeAddNodeModal() {
+    document.getElementById('addNodeModal').classList.add('hidden');
+}
+
+function confirmAddNode(e) {
+    e.preventDefault();
+    const ch = document.getElementById('chSelect').value;
+    const layer = document.getElementById('nodeLayerSelect').value;
+    const offset = parseFloat(document.getElementById('nodeOffsetInput').value);
+    const level = parseFloat(document.getElementById('nodeLevelInput').value);
+
+    if (!ch || isNaN(offset) || isNaN(level)) {
+        showToast("Please enter valid Offset and Level values.");
+        return;
+    }
+
+    const targetArray = layer === "L1" ? data1[ch] : data2[ch];
+    const layerLabel = layer === "L1" 
+        ? (document.getElementById('l1Name').value || "OGL") 
+        : (document.getElementById('l2Name').value || "PGL");
+
+    // Update existing offset if exact match exists, otherwise push new node
+    const existingIndex = targetArray.findIndex(p => Math.abs(p.x - offset) < 0.0001);
+    if (existingIndex !== -1) {
+        targetArray[existingIndex].y = level;
+    } else {
+        targetArray.push({ x: offset, y: level });
+        targetArray.sort((a, b) => a.x - b.x);
+    }
+
+    closeAddNodeModal();
+    runAnalysis();
+    showToast(`Node added to ${layerLabel} (Offset: ${offset.toFixed(2)}m, Level: ${level.toFixed(3)}m)`);
 }
 
 // Global Data Stores
